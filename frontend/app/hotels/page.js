@@ -76,6 +76,17 @@ function HotelsList() {
   const [activeFilters, setActiveFilters] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [listings, setListings] = useState([]);
+  
+  // Get search query from URL on component mount
+  useEffect(() => {
+    // Get the search query from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const queryParam = urlParams.get('q');
+    
+    if (queryParam) {
+      setSearchQuery(queryParam);
+    }
+  }, []);
 
   // Fetch data on component mount
   useEffect(() => {
@@ -221,7 +232,7 @@ function HotelsList() {
                       location={hotel.location}
                       country={hotel.country}
                       price={hotel.price}
-                      image={hotel.image?.url}
+                      image={hotel.mainImage?.url}
                     />
                   </motion.div>
                 ))}
@@ -259,8 +270,8 @@ function HotelsList() {
 // Main export with Suspense for loading state
 export default function Hotels() {
   return (
-    <div className="min-h-screen bg-linear-to-b from-blue-50 to-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    <div className="min-h-screen bg-linear-to-b from-blue-50 to-gray-50  pt-15">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py sm:py-12 ">
         <Suspense fallback={<HotelsLoading />}>
           <HotelsList />
         </Suspense>

@@ -1,11 +1,11 @@
 const mongoose = require("mongoose");
-const Listing = require("./Models/");
-const sampleListings = require("./data");
+const Listing = require("./Schema.js");
+const sampleListings = require("./sampleListingsUpdated.js");
 
 
 
 mongoose
-  .connect("mongodb://127.0.0.1:27017/New_wanderland")
+  .connect("mongodb://127.0.0.1:27017/CozyStay")
   .then(async () => {
     console.log("MongoDB connected!");
 

@@ -64,7 +64,7 @@ export default function Login() {
             <div>
               <h2 className="text-2xl font-semibold">Welcome back</h2>
               <p className="text-sm text-white/80">
-                Sign in to continue to Wanderland
+                Sign in to continue to CozyStay
               </p>
             </div>
           </div>
@@ -157,7 +157,7 @@ export default function Login() {
             </button>
           </form>
 
-          <div className="mt-4 text-center text-sm text-white/80">
+          {/* <div className="mt-4 text-center text-sm text-white/80">
             Or continue with
           </div>
 
@@ -194,7 +194,7 @@ export default function Login() {
               </svg>
               <span className="text-sm">GitHub</span>
             </button>
-          </div>
+          </div> */}
 
           <p className="mt-4 text-center text-sm text-white/80">
             Don&apos;t have an account?{" "}

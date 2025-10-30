@@ -1,6 +1,33 @@
+"use client";
+
 import Image from "next/image";
+import { useState } from "react";
+import { Search, MapPin, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [popularDestinations, setPopularDestinations] = useState([
+    { id: 1, name: "Bali", image: "/bali.jpg", properties: 245 },
+    { id: 2, name: "Dubai", image: "/dubai.webp", properties: 312 },
+    { id: 3, name: "Tokyo", image: "/tokyo.webp", properties: 189 },
+  ]);
+  
+  const router = useRouter();
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/hotels?q=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
+  const handleDestinationClick = (destination) => {
+    router.push(`/hotels?q=${encodeURIComponent(destination)}`);
+  };
+
   return (
     <main className="relative min-h-screen w-full">
       {/* Background with CSS */}
@@ -8,35 +35,53 @@ export default function Home() {
 
       {/* Gradient overlay for contrast */}
       <div className="fixed inset-0 bg-linear-to-b from-black/70 via-black/50 to-black/70" />
+      
       {/* Content */}
       <div className="relative z-20 flex flex-col items-center justify-center text-center text-white px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20 mt-8 sm:mt-10">
-        <h1 className="text-3xl md:text-4xl lg:text-6xl font-extrabold leading-tight sm:leading-tight lg:leading-tight mb-3 sm:mb-4 drop-shadow-lg max-w-4xl">
+        <motion.h1 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-3xl md:text-4xl lg:text-6xl font-extrabold leading-tight sm:leading-tight lg:leading-tight mb-3 sm:mb-4 drop-shadow-lg max-w-4xl"
+        >
           Find your perfect stay
-        </h1>
+        </motion.h1>
 
-        <p className="text-sm sm:text-base lg:text-lg mb-8 sm:mb-12 max-w-xl sm:max-w-2xl lg:max-w-3xl opacity-90">
+        <motion.p 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="text-sm sm:text-base lg:text-lg mb-8 sm:mb-12 max-w-xl sm:max-w-2xl lg:max-w-3xl opacity-90"
+        >
           Discover top-rated hotels, compare prices, and book instantly —
           wherever your next adventure takes you.
-        </p>
+        </motion.p>
 
         {/* Glass search form */}
-        <form
-          action="/hotels"
-          method="get"
-          className="w-[95%] sm:w-[90%] lg:w-[80%] max-w-4xl mx-auto bg-white/10 backdrop-blur-md rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl border border-white/10 transition-all duration-300"
+        <motion.form
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          onSubmit={handleSearch}
+          className="w-[95%] sm:w-[90%] lg:w-[80%] max-w-4xl mx-auto bg-white/10 backdrop-blur-md rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl border border-white/10 transition-all duration-300 hover:bg-white/15"
         >
           <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 sm:gap-4">
             {/* Destination Input */}
-            <div className="flex-1 min-w-[200px]">
+            <div className="flex-1 min-w-[200px] relative">
               <label htmlFor="destination" className="sr-only">
                 Destination
               </label>
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/70">
+                <Search className="w-5 h-5" />
+              </div>
               <input
                 id="destination"
                 name="q"
                 type="search"
                 placeholder="Where are you going?"
-                className="w-full px-4 py-3 text-sm sm:text-base rounded-lg bg-white/10 placeholder-white/70 text-white focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 text-sm sm:text-base rounded-lg bg-white/10 placeholder-white/70 text-white focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
               />
             </div>
 
@@ -96,104 +141,54 @@ export default function Home() {
               type="submit"
               className="flex items-center justify-center gap-2 px-6 sm:px-8 py-3 w-full sm:w-auto rounded-full bg-linear-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 transition text-white text-sm sm:text-base font-semibold shadow-lg"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M12.9 14.32a8 8 0 111.414-1.414l4.387 4.386a1 1 0 01-1.414 1.415l-4.386-4.387zM14 8a6 6 0 11-12 0 6 6 0 0112 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
+              <Search className="h-5 w-5" />
               Search
             </button>
           </div>
-        </form>
+        </motion.form>
 
-        {/* Popular destinations / cards */}
-        <div className="mt-12 sm:mt-16 lg:mt-22 w-full max-w-[95vw] sm:max-w-2xl lg:max-w-6xl px-2 sm:px-0">
-          <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold mb-4 sm:mb-6 lg:mb-12">
-            Popular destinations
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
-            {[
-              {
-                city: "Tokyo",
-                image: "/tokyo.webp",
-                description: "Iconic white villages & stunning sunsets",
-                price: 199,
-                properties: 156,
-              },
-              {
-                city: "Dubai",
-                image: "/dubai.webp", // You can replace with your image
-                description: "Luxury stays & desert adventures",
-                price: 299,
-                properties: 243,
-              },
-              {
-                city: "Bali",
-                image: "/bali.jpg", // You can replace with your image
-                description: "Tropical villas & beachfront resorts",
-                price: 129,
-                properties: 189,
-              },
-            ].map((destination) => (
-              <a
-                key={destination.city}
-                href={`/hotels?city=${encodeURIComponent(destination.city)}`}
-                className="group block rounded-xl overflow-hidden shadow-lg relative bg-white/5 border border-white/6"
+        {/* Popular Destinations Section */}
+        <motion.section 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          className="mt-16 w-full max-w-6xl mx-auto"
+        >
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold">Popular Destinations</h2>
+            <Link href="/hotels" className="text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors">
+              View all <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+            {popularDestinations.map((destination) => (
+              <motion.div
+                key={destination.id}
+                whileHover={{ y: -5, scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+                className="relative rounded-xl overflow-hidden cursor-pointer group"
+                onClick={() => handleDestinationClick(destination.name)}
               >
-                <div className="relative h-52 xs:h-48 sm:h-40 lg:h-44 w-full">
-                  <Image
-                    src={destination.image}
-                    alt={`${destination.city} hotels and resorts`}
-                    fill
-                    sizes="(max-width: 640px) 95vw, (max-width: 1024px) 45vw, 30vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
-                </div>
-                <div className="p-3 sm:p-4">
-                  <h3 className="text-base sm:text-lg font-semibold mb-0.5 sm:mb-1">
-                    {destination.city}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-white/80">
-                    {destination.description}
-                  </p>
-                  <div className="mt-2 flex items-center justify-between">
-                    <span className="text-xs text-white/60">
-                      {destination.properties} properties
-                    </span>
-                    <span className="text-xs sm:text-sm font-medium">
-                      From ${destination.price}
-                    </span>
+                <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent z-10" />
+                <Image
+                  src={destination.image}
+                  alt={destination.name}
+                  width={400}
+                  height={250}
+                  className="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute bottom-0 left-0 p-4 z-20 w-full">
+                  <div className="flex items-center gap-1 text-white/80 mb-1">
+                    <MapPin className="w-4 h-4" />
+                    <span className="text-sm">{destination.properties} properties</span>
                   </div>
+                  <h3 className="text-xl font-bold text-white">{destination.name}</h3>
                 </div>
-              </a>
+              </motion.div>
             ))}
           </div>
-        </div>
-
-        {/* Secondary CTAs */}
-        <div className="mt-8 sm:mt-20 flex flex-col sm:flex-row flex-wrap justify-center gap-3 sm:gap-8">
-          <a
-            href="/hotels"
-            className="px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base rounded-full bg-blue-600 hover:bg-blue-700 transition text-center font-medium"
-          >
-            Browse hotels
-          </a>
-          <a
-            href="/about"
-            className="px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base rounded-full border border-white text-white hover:bg-white hover:text-black transition text-center font-medium"
-          >
-            Learn more
-          </a>
-        </div>
+        </motion.section>
       </div>
     </main>
   );

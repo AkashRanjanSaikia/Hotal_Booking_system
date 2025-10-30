@@ -55,7 +55,7 @@ export default function Signup() {
             <div>
               <h2 className="text-2xl font-semibold">Create your account</h2>
               <p className="text-sm text-white/80">
-                Join Wanderland to book great stays
+                Join CozyStay to book great stays
               </p>
             </div>
           </div>
@@ -168,7 +168,7 @@ export default function Signup() {
             </button>
           </form>
 
-          <div className="mt-4 text-center text-sm text-white/80">
+          {/* <div className="mt-4 text-center text-sm text-white/80">
             Or continue with
           </div>
 
@@ -205,7 +205,7 @@ export default function Signup() {
               </svg>
               <span className="text-sm">GitHub</span>
             </button>
-          </div>
+          </div> */}
 
           <p className="mt-4 text-center text-sm text-white/80">
             Already have an account?{" "}

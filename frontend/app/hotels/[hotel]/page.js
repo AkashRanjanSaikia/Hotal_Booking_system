@@ -4,8 +4,18 @@ import { useParams } from "next/navigation";
 import { Calendar } from "@/components/ui/calendar";
 import Image from "next/image";
 import { UserContext } from "../../context/usercontext";
-import { MapPin, Star, Wifi, Coffee, Waves, ChevronLeft, ChevronRight, Users, Check } from "lucide-react";
-import { motion } from "framer-motion";
+import {
+  MapPin,
+  Star,
+  Wifi,
+  Coffee,
+  Waves,
+  ChevronLeft,
+  ChevronRight,
+  Users,
+  Check,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function HotelDetail() {
   const { hotel } = useParams();
@@ -19,6 +29,8 @@ export default function HotelDetail() {
   const [bookingInProgress, setBookingInProgress] = useState(false);
   const [galleryImages, setGalleryImages] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [pauseAutoRotation, setPauseAutoRotation] = useState(false);
+  const [slideDirection, setSlideDirection] = useState("right");
 
   const { user } = useContext(UserContext);
 
@@ -37,36 +49,72 @@ export default function HotelDetail() {
   // set main image and gallery images when hotelData loads
   useEffect(() => {
     if (hotelData) {
-      // Set the main image
-      const mainImg = hotelData.image?.url || "/placeholder.jpg";
+      const mainImg = hotelData.mainImage?.url || "/placeholder.jpg";
       setMainImage(mainImg);
+
+      const extraImgs = hotelData.images;
+      const images = [mainImg, ...extraImgs.map((img) => img.url)];
       
-      // Create gallery images array
-      // In a real app, you would get these from the API
-      const images = [
-        mainImg,
-        "/bali.jpg",
-        "/dubai.webp",
-        "/tokyo.webp",
-        "/newBg.jpg"
-      ];
       setGalleryImages(images);
     }
   }, [hotelData]);
   
+  // Auto-rotate images every 3 seconds, with pause functionality
+  useEffect(() => {
+    if (galleryImages.length <= 1 || pauseAutoRotation) return;
+    
+    const interval = setInterval(() => {
+      setSlideDirection("right"); // Auto-rotation always slides from right
+      setCurrentImageIndex((prev) => {
+        const nextIndex = prev === galleryImages.length - 1 ? 0 : prev + 1;
+        setMainImage(galleryImages[nextIndex]);
+        return nextIndex;
+      });
+    }, 3000);
+    
+    return () => clearInterval(interval);
+  }, [galleryImages, pauseAutoRotation]);
+  
+  // Reset pause after 10 seconds
+  useEffect(() => {
+    if (!pauseAutoRotation) return;
+    
+    const timeout = setTimeout(() => {
+      setPauseAutoRotation(false);
+    }, 6000);
+    
+    return () => clearTimeout(timeout);
+  }, [pauseAutoRotation]);
+
   // Handle gallery navigation
   const handlePrevImage = () => {
-    setCurrentImageIndex((prev) => 
+    setPauseAutoRotation(true); // Pause auto-rotation for 10 seconds
+    setSlideDirection("left"); // Set slide direction to left
+    setCurrentImageIndex((prev) =>
       prev === 0 ? galleryImages.length - 1 : prev - 1
     );
-    setMainImage(galleryImages[currentImageIndex === 0 ? galleryImages.length - 1 : currentImageIndex - 1]);
+    setMainImage(
+      galleryImages[
+        currentImageIndex === 0
+          ? galleryImages.length - 1
+          : currentImageIndex - 1
+      ]
+    );
   };
-  
+
   const handleNextImage = () => {
-    setCurrentImageIndex((prev) => 
+    setPauseAutoRotation(true); // Pause auto-rotation for 10 seconds
+    setSlideDirection("right"); // Set slide direction to right
+    setCurrentImageIndex((prev) =>
       prev === galleryImages.length - 1 ? 0 : prev + 1
     );
-    setMainImage(galleryImages[currentImageIndex === galleryImages.length - 1 ? 0 : currentImageIndex + 1]);
+    setMainImage(
+      galleryImages[
+        currentImageIndex === galleryImages.length - 1
+          ? 0
+          : currentImageIndex + 1
+      ]
+    );
   };
 
   const handleSelect = (newRange) => {
@@ -103,7 +151,7 @@ export default function HotelDetail() {
     const bookingData = {
       hotelId: hotelData._id,
       userName: user?.name || "",
-      userEmail: user?.email || "",
+      userEmail: user?.email || "demo21@gmail.com",
       checkIn: range.from,
       checkOut: range.to,
       guests,
@@ -147,24 +195,33 @@ export default function HotelDetail() {
 
   return (
     <main className="relative">
-      <div className="relative w-full h-[500px] sm:h-[600px] lg:h-[700px] rounded-xl overflow-hidden shadow-xl">
-        {/* Hotel Background Image with Parallax Effect */}
-        <div className="absolute inset-0 w-full h-full transform transition-transform duration-10000 hover:scale-105">
-          <Image
-            src={mainImage || "/placeholder.jpg"}
-            alt={hotelData.title}
-            fill
-            quality={100}
-            priority
-            className="object-cover"
-          />
-        </div>
+      <div className="relative w-full h-[500px] sm:h-[600px] lg:h-[500px] rounded-xl overflow-hidden shadow-xl">
+        {/* Hotel Background Image with Directional Sliding Effect */}
+        <AnimatePresence mode="sync">
+          <motion.div 
+            className="absolute inset-0 w-full h-full overflow-hidden"
+            key={mainImage} // This forces re-render when image changes
+            initial={{ x: slideDirection === "right" ? "100%" : "-100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: slideDirection === "right" ? "-100%" : "100%" }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
+          >
+            <Image
+              src={mainImage || "/placeholder.jpg"}
+              alt={hotelData.title || "Hotel image"}
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover"
+            />
+          </motion.div>
+        </AnimatePresence>
 
         {/* Enhanced Gradient Overlay for Better Text Visibility */}
         <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent"></div>
 
         {/* Hotel Info Overlay with Animation */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -173,7 +230,7 @@ export default function HotelDetail() {
           <div className="inline-block px-3 py-1 mb-4 bg-blue-600/90 text-white text-sm rounded-full">
             Premium Stay
           </div>
-          
+
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white drop-shadow-lg">
             {hotelData.title}
           </h1>
@@ -188,7 +245,9 @@ export default function HotelDetail() {
           <div className="mt-4 flex items-center gap-4">
             <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full">
               <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-              <span className="text-white font-medium">{hotelData.rating || 4.5}</span>
+              <span className="text-white font-medium">
+                {hotelData.rating || 4.5}
+              </span>
             </div>
             <div className="bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full">
               <span className="text-white/90 text-sm">
@@ -250,30 +309,37 @@ export default function HotelDetail() {
 
       {/* Image Gallery Navigation */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 flex justify-center gap-4">
-        <button 
+        <button
           onClick={handlePrevImage}
           className="p-3 rounded-full bg-white/90 shadow-lg hover:bg-blue-50 transition-colors"
           aria-label="Previous image"
         >
           <ChevronLeft className="w-5 h-5 text-gray-700" />
         </button>
-        
+
         {/* Image Indicators */}
         <div className="flex items-center gap-2">
           {galleryImages.map((_, index) => (
             <button
               key={index}
               onClick={() => {
+                setPauseAutoRotation(true); // Pause auto-rotation for 10 seconds
+                // Set slide direction based on which indicator is clicked
+                setSlideDirection(index > currentImageIndex ? "right" : "left");
                 setCurrentImageIndex(index);
                 setMainImage(galleryImages[index]);
               }}
-              className={`w-2.5 h-2.5 rounded-full transition-all ${index === currentImageIndex ? 'bg-blue-600 scale-125' : 'bg-gray-300'}`}
+              className={`w-2.5 h-2.5 rounded-full transition-all ${
+                index === currentImageIndex
+                  ? "bg-blue-600 scale-125"
+                  : "bg-gray-300"
+              }`}
               aria-label={`View image ${index + 1}`}
             />
           ))}
         </div>
-        
-        <button 
+
+        <button
           onClick={handleNextImage}
           className="p-3 rounded-full bg-white/90 shadow-lg hover:bg-blue-50 transition-colors"
           aria-label="Next image"
@@ -281,11 +347,11 @@ export default function HotelDetail() {
           <ChevronRight className="w-5 h-5 text-gray-700" />
         </button>
       </div>
-      
+
       {/* Content Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 relative z-20 grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left: Main details */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
@@ -298,20 +364,35 @@ export default function HotelDetail() {
                 About this luxury stay
               </h2>
               <p className="text-gray-700 dark:text-gray-300 text-lg leading-relaxed">
-                {hotelData.description || "Experience unparalleled luxury and comfort at our premium accommodation. Nestled in a prime location, this property offers breathtaking views and easy access to local attractions. Perfect for both business travelers and vacationers seeking a memorable stay."}
+                {hotelData.description ||
+                  "Experience unparalleled luxury and comfort at our premium accommodation. Nestled in a prime location, this property offers breathtaking views and easy access to local attractions. Perfect for both business travelers and vacationers seeking a memorable stay."}
               </p>
             </div>
 
             <div className="mt-4">
-              <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Property highlights</h3>
+              <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">
+                Property highlights
+              </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 mt-2">
                 {[
-                  { icon: <Wifi className="w-5 h-5" />, name: "Free high-speed WiFi" },
-                  { icon: <Coffee className="w-5 h-5" />, name: "Breakfast included" },
-                  { icon: <Waves className="w-5 h-5" />, name: "Swimming pool" },
-                  { icon: <Check className="w-5 h-5" />, name: "Air conditioning" },
+                  {
+                    icon: <Wifi className="w-5 h-5" />,
+                    name: "Free high-speed WiFi",
+                  },
+                  {
+                    icon: <Coffee className="w-5 h-5" />,
+                    name: "Breakfast included",
+                  },
+                  {
+                    icon: <Waves className="w-5 h-5" />,
+                    name: "Swimming pool",
+                  },
+                  {
+                    icon: <Check className="w-5 h-5" />,
+                    name: "Air conditioning",
+                  },
                   { icon: <Check className="w-5 h-5" />, name: "Room service" },
-                  { icon: <Check className="w-5 h-5" />, name: "Free parking" }
+                  { icon: <Check className="w-5 h-5" />, name: "Free parking" },
                 ].map((amenity, idx) => (
                   <div
                     key={idx}
@@ -320,37 +401,79 @@ export default function HotelDetail() {
                     <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-white/10 flex items-center justify-center text-blue-600 dark:text-blue-400">
                       {amenity.icon}
                     </div>
-                    <span className="text-gray-700 dark:text-gray-300 font-medium">{amenity.name}</span>
+                    <span className="text-gray-700 dark:text-gray-300 font-medium">
+                      {amenity.name}
+                    </span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="rounded-2xl overflow-hidden shadow-lg relative h-64">
+            {/* Beautiful Gallery Grid */}
+            <div className="mt-8 grid grid-cols-3 sm:grid-cols-4 gap-4">
+              {/* First image – larger */}
+              <motion.div
+                key={0}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4 }}
+                className="group relative rounded-2xl overflow-hidden shadow-lg cursor-pointer aspect-square col-span-2 row-span-2"
+              >
                 <Image
-                  src={hotelData.image?.url || "/bali.jpg"}
-                  alt="Hotel room"
+                  src={galleryImages[0] || "/placeholder.jpg"}
+                  alt="Hotel image 1"
                   fill
-                  quality={90}
-                  className="object-cover"
+                  sizes="50vw"
+                  className="object-cover group-hover:scale-110 transition-transform duration-500 ease-in-out"
                 />
-              </div>
-              <div className="rounded-2xl overflow-hidden shadow-lg relative h-64">
-                <Image
-                  src={hotelData.image?.url || "/dubai.webp"}
-                  alt="Hotel amenities"
-                  fill
-                  quality={90}
-                  className="object-cover"
-                />
-              </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute bottom-3 left-3 text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  View 1
+                </div>
+              </motion.div>
+
+              {/* Remaining images – small */}
+              {galleryImages.slice(1, 5).map((imgUrl, idx) => (
+                <motion.div
+                  key={idx + 1}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.4, delay: (idx + 1) * 0.1 }}
+                  className="group relative rounded-2xl overflow-hidden shadow-lg cursor-pointer aspect-square"
+                >
+                  <Image
+                    src={imgUrl || "/placeholder.jpg"}
+                    alt={`Hotel image ${idx + 2}`}
+                    fill
+                    sizes="25vw"
+                    className="object-cover group-hover:scale-110 transition-transform duration-500 ease-in-out"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute bottom-3 left-3 text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    View {idx + 2}
+                  </div>
+                </motion.div>
+              ))}
+
+              {/* + indicator when more than 5 images */}
+              {galleryImages.length > 5 && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.4, delay: 0.5 }}
+                  className="group relative rounded-2xl overflow-hidden shadow-lg cursor-pointer aspect-square bg-gray-200 dark:bg-gray-700 flex items-center justify-center"
+                >
+                  <span className="text-3xl font-bold text-gray-600 dark:text-gray-300">
+                    +{galleryImages.length - 5}
+                  </span>
+                </motion.div>
+              )}
             </div>
           </div>
         </motion.div>
 
         {/* Right: Booking Card */}
-        <motion.aside 
+        <motion.aside
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
@@ -358,7 +481,9 @@ export default function HotelDetail() {
         >
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-xl font-bold text-gray-800 dark:text-white">{hotelData.title}</h3>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-white">
+                {hotelData.title}
+              </h3>
               <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
                 <MapPin className="w-3 h-3" /> {hotelData.location}
               </p>
@@ -373,14 +498,16 @@ export default function HotelDetail() {
 
           <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
             <div className="flex items-center justify-between mb-2">
-              <h4 className="font-medium text-gray-800 dark:text-white">Your stay</h4>
+              <h4 className="font-medium text-gray-800 dark:text-white">
+                Your stay
+              </h4>
               {range.from && range.to && (
                 <span className="text-xs bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full">
-                  {nights} {nights === 1 ? 'night' : 'nights'}
+                  {nights} {nights === 1 ? "night" : "nights"}
                 </span>
               )}
             </div>
-            
+
             <div className="mt-4 w-full rounded-xl border border-blue-100 dark:border-blue-800 overflow-hidden bg-white dark:bg-gray-800 shadow-sm">
               <Calendar
                 mode="range"
@@ -415,16 +542,26 @@ export default function HotelDetail() {
 
           <div className="mt-6 space-y-3 pt-4 border-t border-gray-100 dark:border-gray-700">
             <div className="flex items-center justify-between text-gray-600 dark:text-gray-400">
-              <span>{formatCurrency(hotelData.price)} × {nights || 0} nights</span>
+              <span>
+                {formatCurrency(hotelData.price)} × {nights || 0} nights
+              </span>
               <span>{formatCurrency((nights || 0) * hotelData.price)}</span>
             </div>
             <div className="flex items-center justify-between text-gray-600 dark:text-gray-400">
               <span>Cleaning fee</span>
-              <span>{formatCurrency(Math.ceil(0.05 * (nights || 0) * hotelData.price))}</span>
+              <span>
+                {formatCurrency(
+                  Math.ceil(0.05 * (nights || 0) * hotelData.price)
+                )}
+              </span>
             </div>
             <div className="flex items-center justify-between text-gray-600 dark:text-gray-400">
               <span>Service fee</span>
-              <span>{formatCurrency(Math.ceil(0.05 * (nights || 0) * hotelData.price))}</span>
+              <span>
+                {formatCurrency(
+                  Math.ceil(0.05 * (nights || 0) * hotelData.price)
+                )}
+              </span>
             </div>
             <div className="flex items-center justify-between text-lg font-bold text-gray-800 dark:text-white pt-3 mt-2 border-t border-gray-100 dark:border-gray-700">
               <span>Total</span>
@@ -464,7 +601,7 @@ export default function HotelDetail() {
               {message}
             </motion.div>
           )}
-          
+
           <div className="mt-6 text-center text-xs text-gray-500">
             You won't be charged yet
           </div>
