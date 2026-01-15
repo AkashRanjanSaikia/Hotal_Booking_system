@@ -5,7 +5,7 @@ import { UserProvider } from "./context/usercontext";
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="antialiased">
+      <body className="antialiased ">
         <UserProvider>
           <Navbar />
           {children}

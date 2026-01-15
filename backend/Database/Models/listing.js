@@ -40,6 +40,12 @@ const listingSchema = new mongoose.Schema({
   },
   location: String,
   country: String,
+
+  owner:{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
 });
 
 module.exports = mongoose.model("Listing", listingSchema);

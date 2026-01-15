@@ -24,6 +24,12 @@ const listingSchema = new mongoose.Schema({
   },
   location: String,
   country: String,
+
+  owner:{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: new mongoose.Types.ObjectId("672b8f64b23f9f2a1c3e4d77"),
+  },
 });
 
 module.exports = mongoose.model("Listing", listingSchema);

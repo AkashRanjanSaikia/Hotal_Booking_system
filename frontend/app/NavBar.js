@@ -25,10 +25,10 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between bg-white/60 backdrop-blur-sm border border-white/10 rounded-2xl p-3 shadow-xl ring-1 ring-white/5">
           <Link href="/" className="flex items-center gap-3 text-slate-900">
-            <span className="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-white/80 text-blue-600 text-sm font-bold ring-1 ring-white/30">
-              C
+            <span className="inline-flex items-center justify-center h-9 w-9 rounded-full  ring-1 ring-white/30">
+              <img src="/logo2.png" alt="CozyStay" className="h-full w-auto rounded-full" />
             </span>
-            <span className="font-semibold text-lg">CozyStay</span>
+            <span className="font-bold text-lg">CozyStay</span>
           </Link>
 
           {/* Desktop links */}
