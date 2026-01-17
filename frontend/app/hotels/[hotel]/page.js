@@ -31,13 +31,20 @@ export default function HotelDetail() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [pauseAutoRotation, setPauseAutoRotation] = useState(false);
   const [slideDirection, setSlideDirection] = useState("right");
+  const [reviews, setReviews] = useState([]);
+  const [reviewText, setReviewText] = useState("");
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewMessage, setReviewMessage] = useState("");
 
   const { user } = useContext(UserContext);
 
   useEffect(() => {
     fetch(`http://localhost:8000/listings/${hotel}`)
       .then((res) => res.json())
-      .then((data) => setHotelData(data))
+      .then((data) => {
+        setHotelData(data);
+        setReviews(data.reviews || []);
+      })
       .catch((err) => console.error("Error fetching hotel:", err));
   }, [hotel]);
 
@@ -193,6 +200,51 @@ export default function HotelDetail() {
       ? (range.to.getTime() - range.from.getTime()) / (1000 * 60 * 60 * 24)
       : 0;
 
+  const averageRating =
+    reviews.length > 0
+      ? reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length
+      : null;
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    if (!user) {
+      setReviewMessage("You must be logged in to leave a review.");
+      return;
+    }
+    if (!reviewRating) {
+      setReviewMessage("Please select a star rating.");
+      return;
+    }
+    try {
+      const res = await fetch(
+        `http://localhost:8000/listings/${hotelData._id}/reviews`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            rating: reviewRating,
+            comment: reviewText,
+            userId: user.id,
+          }),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        setReviewMessage(data.message || "Failed to submit review.");
+        return;
+      }
+      setHotelData(data.listing);
+      setReviews(data.listing.reviews || []);
+      setReviewText("");
+      setReviewRating(0);
+      setReviewMessage("Review submitted successfully.");
+    } catch (err) {
+      console.error("Review submit error:", err);
+      setReviewMessage("Failed to submit review due to network error.");
+    }
+  };
+
   return (
     <main className="relative">
       <div className="relative w-full h-[500px] sm:h-[600px] lg:h-[500px] rounded-xl overflow-hidden shadow-xl">
@@ -246,12 +298,12 @@ export default function HotelDetail() {
             <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full">
               <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
               <span className="text-white font-medium">
-                {hotelData.rating || 4.5}
+                {averageRating ? averageRating.toFixed(1) : "New"}
               </span>
             </div>
             <div className="bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full">
               <span className="text-white/90 text-sm">
-                {hotelData.reviewsCount || 120} verified reviews
+                {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
               </span>
             </div>
           </div>
@@ -607,6 +659,129 @@ export default function HotelDetail() {
           </div>
         </motion.aside>
       </div>
+
+      {/* Reviews Section */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-1">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Guest reviews
+            </h2>
+            <p className="text-gray-600 text-sm mb-4">
+              Share your experience and help others decide.
+            </p>
+
+            {user ? (
+              <form
+                onSubmit={handleSubmitReview}
+                className="bg-white rounded-2xl shadow-lg border border-gray-100 p-5 space-y-4"
+              >
+                <div>
+                  <span className="block text-sm font-semibold text-gray-800 mb-2">
+                    Your rating
+                  </span>
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setReviewRating(star)}
+                        className="focus:outline-none"
+                      >
+                        <Star
+                          className={`w-6 h-6 ${
+                            star <= reviewRating
+                              ? "text-yellow-400 fill-yellow-400"
+                              : "text-gray-300"
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                    Your review
+                  </label>
+                  <textarea
+                    value={reviewText}
+                    onChange={(e) => setReviewText(e.target.value)}
+                    rows={4}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="What did you like or dislike?"
+                  />
+                </div>
+
+                {reviewMessage && (
+                  <p
+                    className={`text-xs ${
+                      reviewMessage.includes("success")
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
+                  >
+                    {reviewMessage}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  className="w-full inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
+                >
+                  Submit review
+                </button>
+              </form>
+            ) : (
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-5 text-sm text-gray-600">
+                Please log in to leave a review.
+              </div>
+            )}
+          </div>
+
+          <div className="lg:col-span-2">
+            {reviews.length === 0 ? (
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 text-gray-600 text-sm">
+                No reviews yet. Be the first to review this stay.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {reviews
+                  .slice()
+                  .reverse()
+                  .map((rev, idx) => (
+                    <div
+                      key={idx}
+                      className="bg-white rounded-2xl shadow-md border border-gray-100 p-4"
+                    >
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="font-semibold text-gray-900 text-sm">
+                          {rev.user?.name || "Guest"}
+                        </div>
+                        <div className="flex items-center gap-1 text-yellow-400">
+                          {renderStars(rev.rating)}
+                        </div>
+                      </div>
+                      {rev.comment && (
+                        <p className="text-sm text-gray-700 mt-1">
+                          {rev.comment}
+                        </p>
+                      )}
+                      <div className="mt-2 text-[11px] text-gray-400">
+                        {rev.createdAt
+                          ? new Date(rev.createdAt).toLocaleDateString(
+                              "en-IN",
+                              { dateStyle: "medium" }
+                            )
+                          : ""}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

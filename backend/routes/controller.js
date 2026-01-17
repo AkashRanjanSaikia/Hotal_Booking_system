@@ -17,7 +17,10 @@ exports.getAllListings = async (req, res) => {
 // Get a single listing by ID
 exports.getListingById = async (req, res) => {
   try {
-    const listing = await Listing.findById(req.params.id);
+    const listing = await Listing.findById(req.params.id).populate({
+      path: "reviews.user",
+      select: "name",
+    });
     if (!listing) return res.status(404).json({ error: "Listing not found" });
     res.json(listing);
   } catch (err) {
@@ -113,6 +116,7 @@ exports.newBooking = async (req, res) => {
 };
 
 exports.favouriteListing = async (req, res) => {
+  console.log("working");
   try {
     const { userId, listingId } = req.body;
 
@@ -130,5 +134,129 @@ exports.favouriteListing = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Favouriting failed", error: err.message });
+  }
+};
+
+exports.unfavouriteListing = async (req, res) => {
+  try {
+    const { userId, listingId } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { $pull: { favourites: listingId } },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ message: "Listing removed from favourites" });
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ message: "Unfavouriting failed", error: err.message });
+  }
+};
+
+exports.favouriteHotels = async (req, res) => {
+  console.log("working favourites");
+  try {
+    const { userId } = req.query;
+
+    const user = await User.findById(userId).populate("favourites");
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.status(200).json({ favourites: user.favourites });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Retrieving favourites failed", error: err.message });
+  }
+};
+
+exports.getMyBookings = async (req, res) => {
+  try {
+    const userEmail = req.user.email;
+    if (!userEmail) {
+      return res.status(400).json({ message: "User email not found in token" });
+    }
+
+    const bookings = await Booking.find({ userEmail }).populate("hotel");
+    res.json(bookings);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch bookings", error: err.message });
+  }
+};
+
+exports.updateListing = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, price, location, country, mainImage } = req.body;
+
+    const listing = await Listing.findById(id);
+    if (!listing) {
+      return res.status(404).json({ message: "Listing not found" });
+    }
+
+    if (typeof title === "string") listing.title = title;
+    if (typeof description === "string") listing.description = description;
+    if (typeof price === "number") listing.price = price;
+    if (typeof location === "string") listing.location = location;
+    if (typeof country === "string") listing.country = country;
+    if (mainImage) listing.mainImage = mainImage;
+
+    await listing.save();
+
+    res.status(200).json({ message: "Listing updated successfully", listing });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to update listing", error: err.message });
+  }
+};
+
+exports.addReview = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rating, comment, userId } = req.body;
+
+    if (!userId || !rating) {
+      return res
+        .status(400)
+        .json({ message: "User and rating are required for a review" });
+    }
+
+    const listing = await Listing.findById(id);
+    if (!listing) {
+      return res.status(404).json({ message: "Listing not found" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    listing.reviews.push({
+      user: user._id,
+      rating,
+      comment,
+    });
+
+    await listing.save();
+
+    const populated = await Listing.findById(id).populate({
+      path: "reviews.user",
+      select: "name",
+    });
+
+    res
+      .status(201)
+      .json({ message: "Review added successfully", listing: populated });
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ message: "Failed to add review", error: err.message });
   }
 };

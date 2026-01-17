@@ -87,7 +87,7 @@ export default function Home() {
 
             {/* Date & Guest Inputs */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 flex-1 w-full sm:w-auto">
-              <div>
+              <div className="relative">
                 <label htmlFor="checkin" className="sr-only">
                   Check-in
                 </label>
@@ -95,11 +95,12 @@ export default function Home() {
                   id="checkin"
                   name="checkin"
                   type="date"
-                  className="w-full px-3 py-3 text-sm sm:text-base rounded-lg bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                  className="w-full px-3 py-3 text-sm sm:text-base rounded-lg bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-blue-400 transition border border-white/15 placeholder-transparent [color-scheme:dark]"
                 />
+                
               </div>
 
-              <div>
+              <div className="relative">
                 <label htmlFor="checkout" className="sr-only">
                   Check-out
                 </label>
@@ -107,32 +108,44 @@ export default function Home() {
                   id="checkout"
                   name="checkout"
                   type="date"
-                  className="w-full px-3 py-3 text-sm sm:text-base rounded-lg bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                  className="w-full px-3 py-3 text-sm sm:text-base rounded-lg bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-blue-400 transition border border-white/15 placeholder-transparent [color-scheme:dark]"
                 />
               </div>
 
-              <div>
+              <div className="relative">
                 <label htmlFor="guests" className="sr-only">
                   Guests
                 </label>
+                
                 <select
                   id="guests"
                   name="guests"
-                  className="w-full px-3 py-3 text-sm sm:text-base rounded-lg bg-white/10 text-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                  className="w-full appearance-none pl-4 py-3 text-sm sm:text-base rounded-lg bg-white/10 text-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 transition border border-white/15"
                 >
-                  <option value="1" className="text-black">
+                  <option value="1" className="text-black bg-white">
                     1 guest
                   </option>
-                  <option value="2" className="text-black">
+                  <option value="2" className="text-black bg-white">
                     2 guests
                   </option>
-                  <option value="3" className="text-black">
+                  <option value="3" className="text-black bg-white">
                     3 guests
                   </option>
-                  <option value="4" className="text-black">
+                  <option value="4" className="text-black bg-white">
                     4 guests
                   </option>
+                  <option value="5" className="text-black bg-white">
+                    5 guests
+                  </option>
+                  <option value="6" className="text-black bg-white">
+                    6+ guests
+                  </option>
                 </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/70">   
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
             </div>
 
@@ -183,7 +196,7 @@ export default function Home() {
                     <MapPin className="w-4 h-4" />
                     <span className="text-sm">{destination.properties} properties</span>
                   </div>
-                  <h3 className="text-xl font-bold text-white">{destination.name}</h3>
+                  <h3 className="text-xl font-bold text-start px-5 text-white">{destination.name}</h3>
                 </div>
               </motion.div>
             ))}

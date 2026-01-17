@@ -12,17 +12,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useContext } from "react";
+import { useRouter } from "next/navigation";
 import { UserContext } from "./context/usercontext";
 
 export function DropdownMenuDemo() {
-  const { setUser } = useContext(UserContext);
-
+  const router = useRouter();
+  const { user, setUser } = useContext(UserContext);
+  console.log(user);
   const handleLogout = async () => {
     await fetch("http://localhost:8000/auth/logout", {
       method: "POST",
       credentials: "include",
     });
     setUser(null);
+    router.push("/");
   };
 
   return (
@@ -36,10 +39,16 @@ export function DropdownMenuDemo() {
       <DropdownMenuContent className="w-56" align="start">
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={() => window.location.href = "/profile"}>Profile</DropdownMenuItem>
-          <DropdownMenuItem>Your Bookings</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => window.location.href = "/add-hotel"}>Add Your Hotel</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => window.location.href = "/my-hotels"}>Your Hotels</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push("/profile")}>Profile</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push("/my-bookings")}>Your Bookings</DropdownMenuItem>
+          {user?.role === "manager" && ( <>
+            <DropdownMenuItem onClick={() => router.push("/manager/dashboard")}>Manager Dashboard</DropdownMenuItem>
+            </>
+          )}
+          {user?.role === "user" && (
+            <DropdownMenuItem onClick={() => router.push("/register")}>Register as Manager</DropdownMenuItem>
+          )}
+          <DropdownMenuItem onClick={() => router.push("/my-favourites")}>Your Favourite Hotels</DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>Log out</DropdownMenuItem>

@@ -3,7 +3,9 @@
 import Card from "./card";
 import { motion } from "framer-motion";
 import { Search, Filter, MapPin, Loader, X } from "lucide-react";
-import { Suspense, useState, useEffect } from "react";
+import { Suspense, useState, useEffect , useContext } from "react";
+import { UserContext } from "../context/usercontext";
+import axios from "axios";
 
 // Loading component for better UX during data fetching
 function HotelsLoading() {
@@ -76,6 +78,8 @@ function HotelsList() {
   const [activeFilters, setActiveFilters] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [listings, setListings] = useState([]);
+  const [isFavorite, setIsFavorite] = useState([]);
+  const { user } = useContext(UserContext);
   
   // Get search query from URL on component mount
   useEffect(() => {
@@ -109,6 +113,37 @@ function HotelsList() {
 
     fetchListings();
   }, []);
+
+  
+  useEffect(() => {
+    const checkFavoriteStatus = async () => {
+      if (!user?.id) return;
+      try {
+        const response = await axios.get(
+          "http://localhost:8000/listings/favourites",
+          {
+            params: { userId: user.id },
+          }
+        );
+        const favourites = response.data.favourites || [];
+        setIsFavorite(favourites.map((listing) => listing._id));
+        console.log("Favourites:", favourites);
+      } catch (error) {
+        console.log("Error checking favorite status:", error);
+      }
+    };
+    checkFavoriteStatus();
+  }, [user?.id]);
+
+  const getAverageRating = (reviews = []) => {
+    if (!Array.isArray(reviews) || reviews.length === 0) return null;
+    const numericRatings = reviews
+      .map((review) => review?.rating)
+      .filter((value) => typeof value === "number" && !Number.isNaN(value));
+    if (numericRatings.length === 0) return null;
+    const total = numericRatings.reduce((sum, value) => sum + value, 0);
+    return total / numericRatings.length;
+  };
 
   return (
     <>
@@ -233,6 +268,8 @@ function HotelsList() {
                       country={hotel.country}
                       price={hotel.price}
                       image={hotel.mainImage?.url}
+                      isFavorite={isFavorite.includes(hotel._id)}
+                      rating={getAverageRating(hotel.reviews)}
                     />
                   </motion.div>
                 ))}

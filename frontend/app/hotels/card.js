@@ -1,13 +1,29 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { MapPin, Star, Heart } from "lucide-react";
-import { useState } from "react";
+import { useState, useContext , useEffect } from "react";
 import { motion } from "framer-motion";
+import axios from "axios";
+import { UserContext } from "../context/usercontext";
 
-export default function Card({ id, title, location, country, price, image }) {
+export default function Card({
+  id,
+  title,
+  location,
+  country,
+  price,
+  image,
+  isFavorite: initialFavorite = false,
+  rating,
+}) {
   const router = useRouter();
+  const { user } = useContext(UserContext);
   const [isHovered, setIsHovered] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(initialFavorite);
+
+  useEffect(() => {
+    setIsFavorite(initialFavorite);
+  }, [initialFavorite]);
 
   const handleNavigate = () => {
     router.push(`/hotels/${id}`);
@@ -19,10 +35,42 @@ export default function Card({ id, title, location, country, price, image }) {
       handleNavigate();
     }
   };
-  
-  const handleFavorite = (e) => {
+
+  const toggleFavorite = async (hotelId, isFavorited) => {
+    try {
+      if (!user?.id) {
+        console.log("User not logged in. Cannot favourite listing.");
+        return;
+      }
+
+      if (!isFavorited) {
+        await axios.post(
+          "http://localhost:8000/listings/" + hotelId + "/favourite",
+          {
+            userId: user.id,
+            listingId: hotelId,
+          }
+        );
+      } else {
+        await axios.delete(
+          "http://localhost:8000/listings/" + hotelId + "/favourite",
+          {
+            data: {
+              userId: user.id,
+              listingId: hotelId,
+            },
+          }
+        );
+      }
+    } catch (error) {
+      console.log("Error toggling favorite:", error);
+    }
+  };
+
+  const handleFavorite = async (e) => {
     e.stopPropagation();
     setIsFavorite(!isFavorite);
+    await toggleFavorite(id, isFavorite);
   };
 
   return (
@@ -59,26 +107,34 @@ export default function Card({ id, title, location, country, price, image }) {
           <MapPin className="w-3.5 h-3.5 text-blue-600" />
           <span className="font-medium">{location}</span>
         </div>
-        
-        <button 
+
+        <button
           onClick={handleFavorite}
           className="absolute right-3 top-3 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm transition-colors"
           aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
         >
-          <Heart 
-            className={`w-4 h-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} 
+          <Heart
+            className={`w-4 h-4 ${
+              isFavorite ? "fill-red-500 text-red-500" : "text-gray-600"
+            }`}
           />
         </button>
-        
+
         <div className="absolute left-3 bottom-3 bg-blue-600/90 backdrop-blur-sm text-xs text-white px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
           <Star className="w-3.5 h-3.5 fill-yellow-300 text-yellow-300" />
-          <span className="font-medium">4.8</span>
+          <span className="font-medium">
+            {typeof rating === "number" && !Number.isNaN(rating)
+              ? rating.toFixed(1)
+              : "3.5"}
+          </span>
         </div>
       </div>
 
       <div className="p-4 sm:p-5 flex flex-col gap-2 sm:gap-3 flex-1">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 truncate">{title}</h3>
+          <h3 className="text-lg font-semibold text-gray-900 truncate">
+            {title}
+          </h3>
           <p className="mt-1 text-sm text-gray-500 flex items-center gap-1">
             <span>{country}</span>
           </p>

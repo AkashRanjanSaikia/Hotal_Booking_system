@@ -41,7 +41,7 @@ router.post("/login", async (req, res) => {
   res.cookie("token", token, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
   res.json({
     message: "Logged in successfully",
-    user: { name: user.name, role: user.role },
+    user: { id: user._id, name: user.name, role: user.role, email: user.email },
   });
 });
 
@@ -54,6 +54,57 @@ router.post("/logout", (req, res) => {
 router.get("/me", authMiddleware, (req, res) => {
   res.json({ user: req.user });
 });
+
+router.post("/register", async (req, res) => {
+  try {
+    const { businessName, phone , id } = req.body;
+
+    if (!businessName || !phone) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.role === "manager") {
+      return res.status(400).json({ message: "User is already a manager" });
+    }
+
+    user.role = "manager";
+    user.managerData = {
+      businessName,
+      phone,
+      verified: false,
+      appliedAt: new Date(),
+    };
+
+    await user.save();
+
+    const token = jwt.sign(
+      { id: user._id, name: user.name, role: user.role, email: user.email },
+      "your_super_secret_key_here",
+      { expiresIn: "1d" }
+    );
+
+    res.cookie("token", token, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
+
+    res.status(200).json({
+      message: "Manager registration successful. Await approval.",
+      user: {
+        id: user._id,
+        name: user.name,
+        role: user.role,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    console.error("Manager registration error:", error);
+    res.status(500).json({ message: "Registration failed" });
+  }
+});
+
 
 
 module.exports = router;

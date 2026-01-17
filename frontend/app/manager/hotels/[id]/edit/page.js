@@ -1,0 +1,286 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter, useParams } from "next/navigation";
+
+export default function EditHotelPage() {
+  const router = useRouter();
+  const params = useParams();
+  const id = params?.id;
+
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    price: "",
+    location: "",
+    country: "",
+    mainImage: "",
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
+
+  useEffect(() => {
+    async function fetchListing() {
+      if (!id) return;
+      setInitialLoading(true);
+      setError("");
+      try {
+        const res = await fetch(`http://localhost:8000/listings/${id}`, {
+          cache: "no-store",
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || "Failed to load hotel");
+        }
+        setForm({
+          title: data.title || "",
+          description: data.description || "",
+          price: data.price != null ? String(data.price) : "",
+          location: data.location || "",
+          country: data.country || "",
+          mainImage: data.mainImage?.url || "",
+        });
+      } catch (err) {
+        setError(err.message || "Something went wrong");
+      } finally {
+        setInitialLoading(false);
+      }
+    }
+    fetchListing();
+  }, [id]);
+
+  function handleChange(e) {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError("");
+    setSuccessMsg("");
+    setLoading(true);
+
+    try {
+      const payload = {
+        title: form.title,
+        description: form.description,
+        price: Number(form.price),
+        location: form.location,
+        country: form.country,
+        mainImage: form.mainImage
+          ? { url: form.mainImage, filename: form.mainImage.split("/").pop() }
+          : null,
+      };
+
+      const res = await fetch(`http://localhost:8000/listings/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to update hotel");
+      }
+
+      setSuccessMsg("Hotel updated successfully.");
+      router.push("/manager/dashboard");
+    } catch (err) {
+      setError(err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const isFormValid = () =>
+    form.title.trim() &&
+    form.location.trim() &&
+    form.price &&
+    !isNaN(Number(form.price));
+
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-600 text-lg">Loading hotel details...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-linear-to-br from-slate-50 to-blue-50 flex items-center justify-center py-10 px-4 mt-10">
+      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-8 space-y-6 mt-5">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-slate-800">Update Hotel</h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Modify the details of your listing and save changes
+          </p>
+        </div>
+
+        {error && (
+          <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+            <svg
+              className="w-5 h-5"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+            {error}
+          </div>
+        )}
+        {successMsg && (
+          <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-4 py-3">
+            <svg
+              className="w-5 h-5"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clipRule="evenodd"
+              />
+            </svg>
+            {successMsg}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              Hotel Title
+            </label>
+            <input
+              name="title"
+              value={form.title}
+              onChange={handleChange}
+              className="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              placeholder="e.g. Grand Plaza"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Location
+              </label>
+              <input
+                name="location"
+                value={form.location}
+                onChange={handleChange}
+                className="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                placeholder="City, State"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Country
+              </label>
+              <input
+                name="country"
+                value={form.country}
+                onChange={handleChange}
+                className="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                placeholder="Country"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              Price per night (INR)
+            </label>
+            <input
+              name="price"
+              value={form.price}
+              onChange={handleChange}
+              className="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              placeholder="e.g. 1500"
+              required
+              inputMode="numeric"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              Description
+            </label>
+            <textarea
+              name="description"
+              value={form.description}
+              onChange={handleChange}
+              className="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
+              rows={4}
+              placeholder="Short description of your hotel"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              Main Image URL (optional)
+            </label>
+            <input
+              name="mainImage"
+              value={form.mainImage}
+              onChange={handleChange}
+              className="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              placeholder="https://..."
+            />
+          </div>
+
+          <div className="flex items-center justify-between gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => router.push("/manager/dashboard")}
+              className="px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 transition"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              disabled={!isFormValid() || loading}
+              className="px-6 py-2.5 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition flex items-center gap-2"
+            >
+              {loading && (
+                <svg
+                  className="animate-spin h-4 w-4 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  ></path>
+                </svg>
+              )}
+              {loading ? "Saving..." : "Save Changes"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+

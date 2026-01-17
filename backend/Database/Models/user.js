@@ -21,8 +21,14 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["user", "admin"], 
+      enum: ["user", "manager", "admin"],
       default: "user",
+    },
+    managerData: {
+      businessName: String,
+      phone: String,
+      verified: { type: Boolean, default: false },
+      appliedAt: Date,
     },
     favourites: [
       {
