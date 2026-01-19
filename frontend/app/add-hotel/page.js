@@ -17,7 +17,11 @@ export default function AddHotelPage() {
     mainImage: "",
   });
 
-  const [file, setFile] = useState(null); // optional file upload for mainImage
+  const [file, setFile] = useState(null);
+  const [extraFiles, setExtraFiles] = useState([]);
+  const [imageMode, setImageMode] = useState("url");
+  const [extraImageMode, setExtraImageMode] = useState("upload");
+  const [extraImageUrls, setExtraImageUrls] = useState(["", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
@@ -31,6 +35,25 @@ export default function AddHotelPage() {
     setFile(e.target.files?.[0] ?? null);
   }
 
+  function handleExtraFilesChange(e) {
+    const selected = Array.from(e.target.files || []);
+    if (selected.length > 4) {
+      setError("You can upload a maximum of 4 extra photos.");
+      setExtraFiles(selected.slice(0, 4));
+    } else {
+      setError("");
+      setExtraFiles(selected);
+    }
+  }
+
+  function handleExtraUrlChange(index, value) {
+    setExtraImageUrls((prev) => {
+      const next = [...prev];
+      next[index] = value;
+      return next;
+    });
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
@@ -38,15 +61,42 @@ export default function AddHotelPage() {
     setLoading(true);
 
     try {
-      // If you want to support image file upload to backend:
-      if (file) {
+      const hasMainFile = imageMode === "upload" && file;
+      const hasExtraFiles =
+        extraImageMode === "upload" && extraFiles.length > 0;
+      const shouldUseFormData = hasMainFile || hasExtraFiles;
+
+      const cleanedExtraUrls = extraImageUrls
+        .map((u) => u.trim())
+        .filter(Boolean)
+        .slice(0, 4);
+
+      if (shouldUseFormData) {
         const fd = new FormData();
         fd.append("title", form.title);
         fd.append("description", form.description);
-        fd.append("price", form.price);
+        fd.append("price", String(form.price));
         fd.append("location", form.location);
         fd.append("country", form.country);
-        fd.append("mainImage", file);
+        if (user?.id) {
+          fd.append("ownerId", user.id);
+        }
+
+        if (hasMainFile && file) {
+          fd.append("mainImage", file);
+        } else if (imageMode === "url" && form.mainImage) {
+          fd.append("mainImage", form.mainImage);
+        }
+
+        if (hasExtraFiles) {
+          extraFiles.forEach((imgFile) => {
+            fd.append("images", imgFile);
+          });
+        }
+
+        if (extraImageMode === "url" && cleanedExtraUrls.length > 0) {
+          fd.append("imageUrls", JSON.stringify(cleanedExtraUrls));
+        }
 
         const res = await fetch("http://localhost:8000/listings/create", {
           method: "POST",
@@ -57,7 +107,7 @@ export default function AddHotelPage() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Failed to add hotel 1");
         setSuccessMsg("Hotel added successfully.");
-        router.push("/my-hotels");
+        router.push("/manager/dashboard");
       } else {
         const payload = {
           title: form.title,
@@ -66,12 +116,22 @@ export default function AddHotelPage() {
           location: form.location,
           country: form.country,
           mainImage: form.mainImage
-            ? { url: form.mainImage, filename: form.mainImage.split("/").pop() }
+            ? {
+                url: form.mainImage,
+                filename: form.mainImage.split("/").pop(),
+              }
             : null,
+          images:
+            extraImageMode === "url"
+              ? cleanedExtraUrls.map((url) => ({
+                  url,
+                  filename: url.split("/").pop(),
+                }))
+              : [],
           ownerId: user?.id,
         };
         console.log(payload);
-        
+
         const res = await fetch("http://localhost:8000/listings/create", {
           method: "POST",
           headers: {
@@ -188,14 +248,117 @@ export default function AddHotelPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Main Image URL (optional)</label>
-            <input
-              name="mainImage"
-              value={form.mainImage}
-              onChange={handleChange}
-              className="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-              placeholder="https://..."
-            />
+            <div className="flex items-center justify-between mb-2">
+              <span className="block text-sm font-semibold text-slate-700">Hotel Image (optional)</span>
+              <div className="inline-flex rounded-full border border-slate-300 bg-slate-100 p-0.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImageMode("url");
+                    setFile(null);
+                  }}
+                  className={`px-3 py-1 text-xs rounded-full ${
+                    imageMode === "url"
+                      ? "bg-white text-slate-900 shadow-sm"
+                      : "text-slate-600"
+                  }`}
+                >
+                  Image URL
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImageMode("upload");
+                  }}
+                  className={`px-3 py-1 text-xs rounded-full ${
+                    imageMode === "upload"
+                      ? "bg-white text-slate-900 shadow-sm"
+                      : "text-slate-600"
+                  }`}
+                >
+                  Upload
+                </button>
+              </div>
+            </div>
+
+            {imageMode === "url" ? (
+              <input
+                name="mainImage"
+                value={form.mainImage}
+                onChange={handleChange}
+                className="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                placeholder="https://..."
+              />
+            ) : (
+              <input
+                name="mainImageFile"
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              />
+            )}
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="block text-sm font-semibold text-slate-700">
+                Extra Images (optional, max 4)
+              </span>
+              <div className="inline-flex rounded-full border border-slate-300 bg-slate-100 p-0.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setExtraImageMode("url");
+                    setExtraFiles([]);
+                  }}
+                  className={`px-3 py-1 text-xs rounded-full ${
+                    extraImageMode === "url"
+                      ? "bg-white text-slate-900 shadow-sm"
+                      : "text-slate-600"
+                  }`}
+                >
+                  Image URLs
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setExtraImageMode("upload");
+                    setExtraImageUrls(["", "", "", ""]);
+                  }}
+                  className={`px-3 py-1 text-xs rounded-full ${
+                    extraImageMode === "upload"
+                      ? "bg-white text-slate-900 shadow-sm"
+                      : "text-slate-600"
+                  }`}
+                >
+                  Upload
+                </button>
+              </div>
+            </div>
+
+            {extraImageMode === "upload" ? (
+              <input
+                name="extraImages"
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleExtraFilesChange}
+                className="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              />
+            ) : (
+              <div className="space-y-2">
+                {extraImageUrls.map((url, index) => (
+                  <input
+                    key={index}
+                    value={url}
+                    onChange={(e) => handleExtraUrlChange(index, e.target.value)}
+                    className="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    placeholder={`Extra image URL ${index + 1}`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex items-center justify-between gap-3 pt-2">

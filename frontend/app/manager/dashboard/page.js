@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useContext } from "react";
 import { motion } from "framer-motion";
-import { Loader, Plus, Pencil, MapPin } from "lucide-react";
+import { Loader, Plus, Pencil, MapPin, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { UserContext } from "../../context/usercontext";
 
 function LoadingState() {
@@ -25,6 +26,7 @@ function LoadingState() {
 
 export default function ManagerDashboard() {
   const { user } = useContext(UserContext);
+  const router = useRouter();
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -50,6 +52,31 @@ export default function ManagerDashboard() {
     }
     fetchMyHotels(user);
   }, [user]);
+
+  async function handleDelete(hotelId) {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this hotel? This action cannot be undone."
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`http://localhost:8000/listings/${hotelId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        const message = data?.message || "Failed to delete hotel";
+        alert(message);
+        return;
+      }
+
+      setListings((prev) => prev.filter((hotel) => hotel._id !== hotelId));
+    } catch (err) {
+      alert("Unable to delete hotel. Please try again.");
+    }
+  }
 
   if (!user) {
     return (
@@ -124,7 +151,8 @@ export default function ManagerDashboard() {
             {listings.map((hotel) => (
               <article
                 key={hotel._id}
-                className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col"
+                onClick={() => router.push(`/hotels/${hotel._id}`)}
+                className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col cursor-pointer"
               >
                 <div className="relative h-48 w-full bg-gray-100 overflow-hidden">
                   {hotel.mainImage?.url ? (
@@ -161,13 +189,27 @@ export default function ManagerDashboard() {
                       </span>{" "}
                       <span className="text-xs text-gray-500">/ night</span>
                     </div>
-                    <Link
-                      href={`/manager/hotels/${hotel._id}/edit`}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                      Update
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/manager/hotels/${hotel._id}/edit`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                        Update
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(hotel._id);
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
               </article>
