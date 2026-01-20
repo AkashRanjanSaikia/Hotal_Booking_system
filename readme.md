@@ -1,4 +1,4 @@
-# WonderLust
+# Cozystay
 
 A full-stack hotel booking application built with the MERN stack (MongoDB, Express, React/Next.js, Node.js).
 
