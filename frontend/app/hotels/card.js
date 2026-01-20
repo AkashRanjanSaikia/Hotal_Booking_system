@@ -110,12 +110,12 @@ export default function Card({
 
         <button
           onClick={handleFavorite}
-          className="absolute right-3 top-3 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm transition-colors"
+          className="absolute right-3 top-3 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm transition-all duration-200 hover:bg-white hover:scale-110"
           aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
         >
           <Heart
-            className={`w-4 h-4 ${
-              isFavorite ? "fill-red-500 text-red-500" : "text-gray-600"
+            className={`w-4 h-4 transition-colors ${
+              isFavorite ? "fill-red-500 text-red-500" : "text-gray-600 hover:text-red-500"
             }`}
           />
         </button>

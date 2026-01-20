@@ -35,6 +35,7 @@ export default function HotelDetail() {
   const [reviewText, setReviewText] = useState("");
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewMessage, setReviewMessage] = useState("");
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
 
   const { user } = useContext(UserContext);
 
@@ -66,6 +67,15 @@ export default function HotelDetail() {
     }
   }, [hotelData]);
   
+  useEffect(() => {
+    if (galleryImages.length > 0 && isFirstLoad) {
+      const timer = setTimeout(() => {
+        setIsFirstLoad(false);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [galleryImages, isFirstLoad]);
+
   // Auto-rotate images every 3 seconds, with pause functionality
   useEffect(() => {
     if (galleryImages.length <= 1 || pauseAutoRotation) return;
@@ -253,7 +263,7 @@ export default function HotelDetail() {
           <motion.div 
             className="absolute inset-0 w-full h-full overflow-hidden"
             key={mainImage} // This forces re-render when image changes
-            initial={{ x: slideDirection === "right" ? "100%" : "-100%" }}
+            initial={isFirstLoad ? false : { x: slideDirection === "right" ? "100%" : "-100%" }}
             animate={{ x: 0 }}
             exit={{ x: slideDirection === "right" ? "-100%" : "100%" }}
             transition={{ duration: 0.8, ease: "easeInOut" }}

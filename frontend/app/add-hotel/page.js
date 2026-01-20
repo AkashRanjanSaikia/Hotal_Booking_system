@@ -19,7 +19,7 @@ export default function AddHotelPage() {
 
   const [file, setFile] = useState(null);
   const [extraFiles, setExtraFiles] = useState([]);
-  const [imageMode, setImageMode] = useState("url");
+  const [imageMode, setImageMode] = useState("upload");
   const [extraImageMode, setExtraImageMode] = useState("upload");
   const [extraImageUrls, setExtraImageUrls] = useState(["", "", "", ""]);
   const [loading, setLoading] = useState(false);
@@ -283,6 +283,7 @@ export default function AddHotelPage() {
 
             {imageMode === "url" ? (
               <input
+                key="main-image-url"
                 name="mainImage"
                 value={form.mainImage}
                 onChange={handleChange}
@@ -291,6 +292,7 @@ export default function AddHotelPage() {
               />
             ) : (
               <input
+                key="main-image-upload"
                 name="mainImageFile"
                 type="file"
                 accept="image/*"
