@@ -28,7 +28,7 @@ export default function EditHotelPage() {
       setInitialLoading(true);
       setError("");
       try {
-        const res = await fetch(`http://localhost:8000/listings/${id}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/listings/${id}`, {
           cache: "no-store",
         });
         const data = await res.json();
@@ -75,7 +75,7 @@ export default function EditHotelPage() {
           : null,
       };
 
-      const res = await fetch(`http://localhost:8000/listings/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/listings/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

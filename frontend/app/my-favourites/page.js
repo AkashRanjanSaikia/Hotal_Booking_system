@@ -23,7 +23,7 @@ function Favourites() {
       if (!user?.id) return;
       try {
         const response = await axios.get(
-          "http://localhost:8000/listings/favourites",
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/listings/favourites`,
           {
             params: { userId: user.id },
           }

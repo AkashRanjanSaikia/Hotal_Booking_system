@@ -9,7 +9,7 @@ export function UserProvider({ children }) {
 
   // Check if user is logged in on mount
   useEffect(() => {
-    fetch("http://localhost:8000/auth/me", { credentials: "include" })
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/me`, { credentials: "include" })
       .then((res) => res.json())
       .then((data) => setUser(data.user))
       .catch(() => setUser(null));

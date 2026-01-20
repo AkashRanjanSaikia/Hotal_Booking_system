@@ -45,7 +45,7 @@ export default function Card({
 
       if (!isFavorited) {
         await axios.post(
-          "http://localhost:8000/listings/" + hotelId + "/favourite",
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/listings/${hotelId}/favourite`,
           {
             userId: user.id,
             listingId: hotelId,
@@ -53,7 +53,7 @@ export default function Card({
         );
       } else {
         await axios.delete(
-          "http://localhost:8000/listings/" + hotelId + "/favourite",
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/listings/${hotelId}/favourite`,
           {
             data: {
               userId: user.id,

@@ -40,7 +40,7 @@ export default function HotelDetail() {
   const { user } = useContext(UserContext);
 
   useEffect(() => {
-    fetch(`http://localhost:8000/listings/${hotel}`)
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/listings/${hotel}`)
       .then((res) => res.json())
       .then((data) => {
         setHotelData(data);
@@ -175,7 +175,7 @@ export default function HotelDetail() {
     };
 
     try {
-      const res = await fetch("http://localhost:8000/bookings", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/bookings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -227,7 +227,7 @@ export default function HotelDetail() {
     }
     try {
       const res = await fetch(
-        `http://localhost:8000/listings/${hotelData._id}/reviews`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/listings/${hotelData._id}/reviews`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

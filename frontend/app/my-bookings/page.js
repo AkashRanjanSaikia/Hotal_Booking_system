@@ -12,7 +12,7 @@ export default function MyBookings() {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/bookings/my-bookings", {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/bookings/my-bookings`, {
           withCredentials: true
         });
         setBookings(response.data);

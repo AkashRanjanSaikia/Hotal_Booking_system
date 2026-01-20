@@ -98,7 +98,7 @@ export default function AddHotelPage() {
           fd.append("imageUrls", JSON.stringify(cleanedExtraUrls));
         }
 
-        const res = await fetch("http://localhost:8000/listings/create", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/listings/create`, {
           method: "POST",
           body: fd,
           credentials: "include",
@@ -132,7 +132,7 @@ export default function AddHotelPage() {
         };
         console.log(payload);
 
-        const res = await fetch("http://localhost:8000/listings/create", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/listings/create`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

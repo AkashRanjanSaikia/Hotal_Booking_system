@@ -38,7 +38,7 @@ export default function ManagerDashboard() {
       setError("");
       try {
         const res = await fetch(
-          `http://localhost:8000/listings/my-hotels?userId=${u.id}`,
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/listings/my-hotels?userId=${u.id}`,
           { credentials: "include", cache: "no-store" }
         );
         if (!res.ok) throw new Error("Failed to fetch your hotels");
@@ -60,7 +60,7 @@ export default function ManagerDashboard() {
     if (!confirmed) return;
 
     try {
-      const res = await fetch(`http://localhost:8000/listings/${hotelId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/listings/${hotelId}`, {
         method: "DELETE",
         credentials: "include",
       });

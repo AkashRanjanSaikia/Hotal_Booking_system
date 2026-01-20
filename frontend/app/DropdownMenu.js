@@ -18,7 +18,7 @@ export function DropdownMenuDemo() {
   const router = useRouter();
   const { user, setUser } = useContext(UserContext);
   const handleLogout = async () => {
-    await fetch("http://localhost:8000/auth/logout", {
+    await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/logout`, {
       method: "POST",
       credentials: "include",
     });

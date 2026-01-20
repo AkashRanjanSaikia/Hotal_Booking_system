@@ -96,7 +96,7 @@ function HotelsList() {
   useEffect(() => {
     async function fetchListings() {
       try {
-        const response = await fetch("http://localhost:8000/listings", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/listings`, {
           cache: "no-store",
         });
 
@@ -120,7 +120,7 @@ function HotelsList() {
       if (!user?.id) return;
       try {
         const response = await axios.get(
-          "http://localhost:8000/listings/favourites",
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/listings/favourites`,
           {
             params: { userId: user.id },
           }
