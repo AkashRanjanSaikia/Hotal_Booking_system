@@ -95,7 +95,7 @@ export default function Home() {
                   id="checkin"
                   name="checkin"
                   type="date"
-                  className="w-full px-3 py-3 text-sm sm:text-base rounded-lg bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-blue-400 transition border border-white/15 placeholder-transparent [color-scheme:dark]"
+                  className="w-full px-3 py-3 text-sm sm:text-base rounded-lg bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-blue-400 transition border border-white/15 placeholder-transparent scheme-dark"
                 />
                 
               </div>
@@ -108,7 +108,7 @@ export default function Home() {
                   id="checkout"
                   name="checkout"
                   type="date"
-                  className="w-full px-3 py-3 text-sm sm:text-base rounded-lg bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-blue-400 transition border border-white/15 placeholder-transparent [color-scheme:dark]"
+                  className="w-full px-3 py-3 text-sm sm:text-base rounded-lg bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-blue-400 transition border border-white/15 placeholder-transparent scheme-dark"
                 />
               </div>
 

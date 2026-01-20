@@ -5,7 +5,7 @@ const sampleListings = require("./sampleListingsUpdated.js");
 
 
 mongoose
-  .connect("mongodb://127.0.0.1:27017/CozyStay")
+  .connect(process.env.MONGO_URI)
   .then(async () => {
     console.log("MongoDB connected!");
 
@@ -14,5 +14,5 @@ mongoose
 
     console.log("Sample listings inserted!");
     mongoose.connection.close();
-  })
+  })  
   .catch((err) => console.error(err));
