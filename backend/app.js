@@ -2,7 +2,7 @@ const express = require('express')
 const connectDB = require("./config/db");
 const listingRoutes = require("./routes/listingroutes");
 const bookingRoutes = require("./routes/bookingRoutes");
-const authRoutes = require("./routes/Auth");
+const authRoutes = require("./routes/auth");
 const cookieParser = require("cookie-parser");
 
 const cors = require("cors");
