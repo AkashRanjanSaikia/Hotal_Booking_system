@@ -13,7 +13,7 @@ const app = express()
 
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://cozy-stay-pi.vercel.app/'
+  'https://cozy-stay-pi.vercel.app'
 ];
 
 app.use(cors({
