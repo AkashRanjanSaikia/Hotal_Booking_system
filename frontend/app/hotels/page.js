@@ -291,7 +291,7 @@ function HotelsList() {
                     No hotels available
                   </h3>
                   <p className="text-gray-600 max-w-md">
-                    We couldn't find any hotels matching your criteria. Try
+                    We couldn&apos;t find any hotels matching your criteria. Try
                     adjusting your filters or check back later.
                   </p>
                 </div>

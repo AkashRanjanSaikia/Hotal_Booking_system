@@ -665,7 +665,7 @@ export default function HotelDetail() {
           )}
 
           <div className="mt-6 text-center text-xs text-gray-500">
-            You won't be charged yet
+            You won&apos;t be charged yet
           </div>
         </motion.aside>
       </div>
