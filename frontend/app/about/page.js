@@ -71,7 +71,7 @@ export default function AboutPage() {
       {/* Why Choose Us Section */}
       <section className="mb-16 bg-gray-50 py-12 px-4 rounded-lg">
         <h2 className="text-3xl font-semibold text-center mb-8">
-          Why Choose WonderLust
+          Why Choose CozyStay
         </h2>
         <div className="max-w-3xl mx-auto space-y-6 text-center">
           <p className="text-gray-600">

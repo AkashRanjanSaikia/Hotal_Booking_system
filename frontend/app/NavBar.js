@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useContext, useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { UserContext } from "./context/usercontext";
@@ -58,9 +59,11 @@ export default function Navbar() {
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3 group">
               <div className="relative overflow-hidden rounded-full ring-2 ring-white/50 shadow-sm transition-transform group-hover:scale-105 duration-300">
-                <img
+                <Image
                   src="/logo2.png"
                   alt="CozyStay"
+                  width={40}
+                  height={40}
                   className="h-10 w-10 object-cover"
                 />
               </div>
