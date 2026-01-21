@@ -5,6 +5,9 @@ import { UserProvider } from "./context/usercontext";
 export const metadata = {
   title: "Cozy Stay",
   description: "Find your perfect stay with Cozy Stay",
+  icons: {
+    icon: "/logo2.png",
+  },
 };
 
 export default function RootLayout({ children }) {
