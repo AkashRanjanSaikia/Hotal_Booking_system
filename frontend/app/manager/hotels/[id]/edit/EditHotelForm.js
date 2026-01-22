@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { revalidateHotels } from "../../../../../actions";
+import { revalidateHotels } from "../../../../actions";
 
 export default function EditHotelForm({ hotel, id }) {
   const router = useRouter();
