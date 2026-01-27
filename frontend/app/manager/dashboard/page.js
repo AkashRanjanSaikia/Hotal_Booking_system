@@ -6,6 +6,7 @@ import { Loader, Plus, Pencil, MapPin, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UserContext } from "../../context/usercontext";
+import { revalidateHotels } from "../../actions";
 
 function LoadingState() {
   return (
@@ -73,6 +74,8 @@ export default function ManagerDashboard() {
       }
 
       setListings((prev) => prev.filter((hotel) => hotel._id !== hotelId));
+      revalidateHotels(hotelId);
+
     } catch (err) {
       alert("Unable to delete hotel. Please try again.");
     }
